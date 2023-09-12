@@ -15,11 +15,13 @@ class Network(object):
         self.num_layers = len(sizes)
         self.sizes = sizes
         """iniciamos los valores de los pesos y bias de forma aleatoria con numero entre 0 y 1 estos se guardan en 
-        listas donde los elementos son listas de los pesos y bias de cada capa en orden 
-        """
-        self.biases = [np.random.randn(y, 1) for y in sizes[1:]]    #np.random.randn(a,b) cra una lista con a filas y b
+        listas donde los elementos son listas de los pesos y bias de cada capa en orden """
+        self.biases = [np.random.randn(y, 1) for y in sizes[1:]]    #np.random.randn(a,b) crra una lista con a filas y b
         self.weights = [np.random.randn(y, x)                      # columnas con numero aleatorios
                         for x, y in zip(sizes[:-1], sizes[1:])]
+        self.Pw = [np.zeros(w.shape) for w in self.weights]  #creamo doslistas par almacenar los P's de los correspondietes...
+        self.Pb=[np.zeros(b.shape) for b in self.biases]   # b's y w's para ajustar sus pesos, los iniciamos en cero
+        
 #Funcion que recibe un elemento de entrada 'x' y lo asiga a 'a' para calcular la salida de la red, regresa el valor de la
 #salida de la red 'a' (vector)
     def feedforward(self, a):
@@ -28,7 +30,7 @@ class Network(object):
         return a    #de capas anteriores.
 #funcion que aplica el algoritmo SGD para entrenar la red y ademas si se le asignan datos de prueba, 
 #la red testea esos datos y nos devuelve el numero de aciertos que obtuvo.
-    def SGD(self, training_data, epochs, mini_batch_size, eta,
+    def SGD(self, training_data, epochs, mini_batch_size, eta, beta, 
             test_data=None):
         if test_data: n_test = len(test_data)   #si hay datos de entrenamiento determina el numero de datos
         n = len(training_data)                  #determina el numero de datos de entrenamiento 
@@ -43,30 +45,33 @@ class Network(object):
             """comienza el entrenamiento de la red para cad mini batch en mini_batches usa la funcion update_mini_batch
             y le pasa uno por uno cada minibatch y el eta"""
             for mini_batch in mini_batches:
-                self.update_mini_batch(mini_batch, eta)    
+                self.update_mini_batch(mini_batch, eta, beta)    
             if test_data:
                 print ("Epoch {0}: {1} / {2}".format(       #si hay datos de prueba, los introduce e imprime 
                     j, self.evaluate(test_data), n_test))   # el total de acierto, y el total de datos.
             else:
                 print ("Epoch {0} complete".format(j))
 #funcion que actualiza los pesos y bias al termino de cada minibatch usando el SGD
-    def update_mini_batch(self, mini_batch, eta):
+    def update_mini_batch(self, mini_batch, eta, beta):
         """crea listas que contiene como elementos arrays de ceros de tamaño de los bias y pesos segun la capa
         estas listans forma el gradiente de c pues cada entrada elemento dentro de los array representa una parcial 
         de c respeto a el 'b' o 'w' correspondiente"""
-        nabla_b = [np.zeros(b.shape) for b in self.biases]  #np.zeros crea arreglos de ceros de la forma especificada
-        nabla_w = [np.zeros(w.shape) for w in self.weights] #A.shape da la forma deñ elemento antes del punto (A)  
+        nabla_b = [np.zeros(b.shape) for b in self.biases] #np.zeros crea arreglos de ceros de la forma especificada
+        nabla_w = [np.zeros(w.shape) for w in self.weights]#A.shape da la forma deñ elemento antes del punto (A)  
         """utiliza el algoritmo backpropagation para calcular los elementos de las listas nabla para cada elemento
         de el minibatch y los suma con los ya obtenidos"""
         for x, y in mini_batch:
             delta_nabla_b, delta_nabla_w = self.backprop(x, y)
             nabla_b = [nb+dnb for nb, dnb in zip(nabla_b, delta_nabla_b)] #suma de los componentes del gradiente para cada
             nabla_w = [nw+dnw for nw, dnw in zip(nabla_w, delta_nabla_w)] #elemento del minibatch 
-        """actualizacion de los pesos una vez calculado el gradinate con los datos del minibatch """
-        self.weights = [w-(eta/len(mini_batch))*nw
-                        for w, nw in zip(self.weights, nabla_w)]
-        self.biases = [b-(eta/len(mini_batch))*nb
-                       for b, nb in zip(self.biases, nabla_b)]
+        """actualizacion de los pesos una vez calculado el gradinate con los datos del minibatch y sumamos el P para
+        darle la inercia en la actualizacion de los pesos, le sumamos los P's(t-1) multiplicados por eta."""
+        self.weights = [w-(eta/len(mini_batch))*nw+(eta*pw)
+                        for w, nw, pw in zip(self.weights, nabla_w, self.Pw)]
+        self.biases = [b-(eta/len(mini_batch))*nb+(eta*pb)
+                       for b, nb, pb in zip(self.biases, nabla_b, self.Pb)]
+        self.Pb=[-b+(beta*pb) for b, pb in zip(nabla_b, self.Pb)] #actualizamos los P's con el gradiente y los P's(t-1)
+        self.Pw=[-w+(beta*pw) for w, pw in zip(nabla_w, self.Pw)] #para usarlos en la ssiguiente actualización:
 #funcion del agoritmo backpropagation que retorna dos listas, con las parciales respecto a los b's y w's que 
 #que conforman el gradiente de la funcion de costo par aun elemento de los datos de entrenamiento
     def backprop(self, x, y):
