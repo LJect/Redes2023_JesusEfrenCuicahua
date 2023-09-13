@@ -27,7 +27,7 @@ class Network(object):
     def feedforward(self, a):
         for b, w in zip(self.biases, self.weights):
             a = sigmoid(np.dot(w, a)+b) #llama a la funcion sigmoide y le pasa los argumentos de pesos, bias y avtivaciones
-            a=np.exp(a)/(np.sum(np.exp(a)))
+        #a=np.exp(a)/(np.sum(np.exp(a))) #aplicamos la funcion soft max a la salida de la red 
         return a    #de capas anteriores.
 #funcion que aplica el algoritmo SGD para entrenar la red y ademas si se le asignan datos de prueba, 
 #la red testea esos datos y nos devuelve el numero de aciertos que obtuvo.
@@ -96,9 +96,9 @@ class Network(object):
         evaluada enlos z's de la ultima capa teniendo asi las delta de la ultima capa """
         #delta = self.cost_derivative(activations[-1], y) * \
         #   sigmoid_prime(zs[-1])
-        activations[-1]=softmax(activations[-1])
+        #activations[-1]=softmax(activations[-1])# aplicamos la funcio softmax a las salidas de la ultima capa.
         delta = activations[-1]- y  #redefinimos la delta de la ultima capa pues aqui es donde se ve el cambio para
-                                    #la funcion de costo cross entropy  
+                                    #la funcion de costo cross entropy y la funcio softmax.  
         nabla_b[-1] = delta #actualiza la parcial de la fucnio de costo respecto a los b's de la ultima capa.
         nabla_w[-1] = np.dot(delta, activations[-2].transpose()) #actualiza parcial de c respecto a los w's de la ultima capa.
         #calculamos los deltas y asi las parciales de las capas anteriores, pues ya contamos con el 
@@ -134,9 +134,11 @@ def sigmoid(z):
 #derivada de la funcion sigmoide, regresa el vector de evaluar la derivada en cada componente del vecto z dado 
 def sigmoid_prime(z):
     return sigmoid(z)*(1-sigmoid(z))
+#funcion softmax
 def softmax(z):
+    "aplicamos la funcion softmax a las salidas de la red "
     a=np.exp(z)
     s=np.sum(a)
-    z=a/s
+    v=a/s
     #print(z,'l')
-    return z
+    return v
