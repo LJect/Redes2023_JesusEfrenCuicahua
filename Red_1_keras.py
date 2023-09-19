@@ -14,7 +14,7 @@ dataset=mnist.load_data()
 #definimos los hiperparametros de nuestra red
 learning_rate = 0.01
 momentum=0.1
-epochs = 30
+epochs =30
 batch_size = 10
 num_classes=10
 #%%
@@ -38,7 +38,7 @@ Capa_salida=Dense(num_classes, activation='sigmoid')
 model = Sequential()
 model.add(Dense(30, activation='sigmoid', input_shape=(784,)))
 model.add(Capa_salida)
-#model.add(Dense(num_classes,activation='softmax'))
+model.add(Dense(num_classes,activation='softmax'))
 model.summary()
 #%%
 model.compile(loss='categorical_crossentropy',optimizer=SGD(learning_rate=learning_rate, momentum=momentum),metrics=['accuracy'])
