@@ -24,10 +24,10 @@ dataset=mnist.load_data()
 #%%
 #definimos los hiperparametros de nuestra red
 parametros = {
-    "batch_size": 60,
-    "learning_rate":0.01,
-    "beta_1":1,
-    "epochs": 50,
+    "batch_size": 20,
+    "learning_rate":0.0002,
+    "beta_1":0.01,
+    "epochs": 60,
     "momentum":0.1,
     "num_classes": 10,
     "loss": "categorical_crossentropy",
@@ -52,14 +52,14 @@ y_tc=keras.utils.to_categorical(y_t, parametros['num_classes'])
 # %%
 Capa_salida=Dense(parametros['num_classes'], activation='sigmoid')
 model = Sequential()
-model.add(Dense(30, activation='sigmoid', input_shape=(784,)))
-model.add(Dense(20, activation='sigmoid', input_shape=(784,)))
+model.add(Dense(80, activation='sigmoid', input_shape=(784,)))
+model.add(Dense(40, activation='sigmoid', input_shape=(784,)))
 model.add(Capa_salida)
 model.add(Dense(parametros['num_classes'],activation='softmax'))
 model.summary()
 checkpoint = ModelCheckpoint('mejor_modelo.hdf5', monitor='val_loss', verbose=1, save_best_only=True, mode='min')
 #%%
-model.compile(loss='categorical_crossentropy',optimizer=SGD(learning_rate=parametros['learning_rate'], momentum=parametros['momentum']),metrics=['accuracy'])
+model.compile(loss='categorical_crossentropy',optimizer=Adam(learning_rate=parametros['learning_rate'],beta_1=parametros['beta_1']),metrics=['accuracy'])
 # %%
 history = model.fit(x_trv, y_trc,
                     batch_size=parametros['batch_size'],
