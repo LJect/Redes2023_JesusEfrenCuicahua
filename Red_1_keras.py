@@ -1,22 +1,38 @@
+
 #%%
-#Librerias
+# Librerias
 #importamos librerias y funciones de tensorflow asi como numpy
 import numpy as np 
+import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow import keras 
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Activation
-from tensorflow.keras.optimizers import RMSprop, SGD
+from tensorflow.keras.optimizers import RMSprop, SGD, Adam
 from tensorflow.keras import regularizers
+from keras.callbacks import ModelCheckpoint
+#%%
 dataset=mnist.load_data()
 #%%
+#Experimento = comet_ml.Experiment(
+ #   auto_histogram_weight_logging=True,
+  #  auto_histogram_gradient_logging=True,
+   # auto_histogram_activation_logging=True,
+    #log_code=True,
+    # )
+#%%
 #definimos los hiperparametros de nuestra red
-learning_rate = 0.01
-momentum=0.1
-epochs =30
-batch_size = 10
-num_classes=10
+parametros = {
+    "batch_size": 60,
+    "learning_rate":0.01,
+    "beta_1":1,
+    "epochs": 50,
+    "momentum":0.1,
+    "num_classes": 10,
+    "loss": "categorical_crossentropy",
+}
+#Experimento.log_parameters(parametros)
 #%%
 # hacemos tuplas de nuestros datos de entrenemiento y nuestros datos de prueva 
 # a continuacion le damos una nueva estructura a los datos de entrada, para poder usar una red con el numero de entradas
@@ -31,22 +47,44 @@ x_tv /= 255
 x_trv /= 255
 # %%
 #le damos formato one hot a los vectores de salida para poder usarlos de manera mas eficiente
-y_trc=keras.utils.to_categorical(y_tr, num_classes)
-y_tc=keras.utils.to_categorical(y_t, num_classes)
+y_trc=keras.utils.to_categorical(y_tr, parametros['num_classes'])
+y_tc=keras.utils.to_categorical(y_t, parametros['num_classes'])
 # %%
-Capa_salida=Dense(num_classes, activation='sigmoid')
+Capa_salida=Dense(parametros['num_classes'], activation='sigmoid')
 model = Sequential()
-model.add(Dense(30, activation='sigmoid', input_shape=(784,)))
+model.add(Dense(300, activation='sigmoid', input_shape=(784,)))
+model.add(Dense(150, activation='sigmoid', input_shape=(784,)))
+model.add(Dense(50, activation='sigmoid', input_shape=(784,)))
 model.add(Capa_salida)
-model.add(Dense(num_classes,activation='softmax'))
+model.add(Dense(parametros['num_classes'],activation='softmax'))
 model.summary()
+checkpoint = ModelCheckpoint('mejor_modelo.hdf5', monitor='val_loss', verbose=1, save_best_only=True, mode='min')
 #%%
-model.compile(loss='categorical_crossentropy',optimizer=SGD(learning_rate=learning_rate, momentum=momentum),metrics=['accuracy'])
+model.compile(loss='categorical_crossentropy',optimizer=RMSprop(learning_rate=parametros['learning_rate']),metrics=['accuracy'])
 # %%
 history = model.fit(x_trv, y_trc,
-                    batch_size=batch_size,
-                    epochs=epochs,
+                    batch_size=parametros['batch_size'],
+                    epochs=parametros['epochs'],
                     verbose=1,
-                    validation_data=(x_tv, y_tc)
+                    validation_data=(x_tv, y_tc),
+                    callbacks=[checkpoint],
                     )
+# %%
+metricas=history.history
+#print(metricas)
+Ep=[p+1 for p in range(parametros['epochs'])]
+print(Ep)
+#Experimento.log_model("MNIST1", "mejor_modelo.hdf5")
+#Experimento.end()
+#graficamos las metricas contra las epocas para ver el entrenaiento 
+#y detectar sobreajuste 
+plt.plot(Ep,metricas['loss'],label='tr_loss',color='b')
+plt.plot(Ep,metricas['val_loss'],label='val_loss',color='r')
+plt.plot(Ep,metricas['accuracy'],label='tr_acurracy',color='g')
+plt.plot(Ep,metricas['val_accuracy'],label='val_acurracy',color='y')
+plt.legend()
+plt.xlabel('epocas')
+plt.ylabel('tr_loss')
+plt.title('funcion de costo y accuracy')
+plt.show()
 # %%
