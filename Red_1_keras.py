@@ -52,15 +52,15 @@ y_tc=keras.utils.to_categorical(y_t, parametros['num_classes'])
 # %%
 Capa_salida=Dense(parametros['num_classes'], activation='sigmoid')
 model = Sequential()
+model.add(Dense(200, activation='sigmoid', input_shape=(784,)))
 model.add(Dense(300, activation='sigmoid', input_shape=(784,)))
-model.add(Dense(150, activation='sigmoid', input_shape=(784,)))
-model.add(Dense(50, activation='sigmoid', input_shape=(784,)))
+model.add(Dense(100, activation='sigmoid', input_shape=(784,)))
 model.add(Capa_salida)
 model.add(Dense(parametros['num_classes'],activation='softmax'))
 model.summary()
 checkpoint = ModelCheckpoint('mejor_modelo.hdf5', monitor='val_loss', verbose=1, save_best_only=True, mode='min')
 #%%
-model.compile(loss='categorical_crossentropy',optimizer=RMSprop(learning_rate=parametros['learning_rate']),metrics=['accuracy'])
+model.compile(loss='categorical_crossentropy',optimizer=Adam(learning_rate=parametros['learning_rate']),metrics=['accuracy'])
 # %%
 history = model.fit(x_trv, y_trc,
                     batch_size=parametros['batch_size'],
