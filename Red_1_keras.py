@@ -27,7 +27,7 @@ parametros = {
     "batch_size": 20,
     "learning_rate":0.0002,
     "beta_1":0.01,
-    "epochs": 70,
+    "epochs": 60,
     "momentum":0.1,
     "num_classes": 10,
     "loss": "categorical_crossentropy",
@@ -53,7 +53,7 @@ y_tc=keras.utils.to_categorical(y_t, parametros['num_classes'])
 Capa_salida=Dense(parametros['num_classes'], activation='sigmoid')
 model = Sequential()
 model.add(Dense(80, activation='sigmoid', input_shape=(784,)))
-model.add(Dense(40, activation='sigmoid', kernel_regularizer=l1(0.003)))
+model.add(Dense(40, activation='sigmoid', kernel_regularizer=l2(0.003)))
 model.add(Capa_salida)
 model.add(Dense(parametros['num_classes'],activation='softmax'))
 model.summary()
