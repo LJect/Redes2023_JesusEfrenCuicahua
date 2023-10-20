@@ -27,7 +27,7 @@ parametros = {
     "batch_size": 20,
     "learning_rate":0.0002,
     "beta_1":0.01,
-    "epochs": 60,
+    "epochs": 10,
     "momentum":0.1,
     "num_classes": 10,
     "loss": "categorical_crossentropy",
@@ -45,7 +45,7 @@ x_trv=x_trv.astype('float32')
 x_tv=x_tv.astype('float32')
 x_tv /= 255
 x_trv /= 255
-# %%
+set=1
 #le damos formato one hot a los vectores de salida para poder usarlos de manera mas eficiente
 y_trc=keras.utils.to_categorical(y_tr, parametros['num_classes'])
 y_tc=keras.utils.to_categorical(y_t, parametros['num_classes'])
